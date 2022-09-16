@@ -1,0 +1,73 @@
+package com.example.SpringFullStack.service;
+import com.example.SpringFullStack.DTO.ProductDTO;
+import com.example.SpringFullStack.Model.Category;
+import com.example.SpringFullStack.Model.Product;
+import com.example.SpringFullStack.Repository.ProductRepo;
+import com.example.SpringFullStack.exceptions.ProductNotExistsException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+@Service
+public class ProductService {
+
+    @Autowired
+    ProductRepo productRepo;
+
+    public void createProduct(ProductDTO productDto, Category category) {
+        Product product = new Product();
+        product.setDescription(productDto.getDescription());
+        product.setImageURL(productDto.getImageURL());
+        product.setName(productDto.getName());
+        product.setCategory(category);
+        product.setPrice(productDto.getPrice());
+        product.setId(product.getId());
+        productRepo.save(product);
+    }
+
+    public ProductDTO getProductDto(Product product) {
+        ProductDTO productDto = new ProductDTO();
+        productDto.setDescription(product.getDescription());
+        productDto.setImageURL(product.getImageURL());
+        productDto.setName(product.getName());
+        productDto.setCategoryId(product.getCategory().getId());
+        productDto.setPrice(product.getPrice());
+        productDto.setId(product.getId());
+        return productDto;
+    }
+
+    public List<ProductDTO> getAllProduct() {
+        List<Product> allProduct = productRepo.findAll();
+        List<ProductDTO> productDTOS = new ArrayList<>();
+        for (Product product : allProduct) {
+            productDTOS.add(getProductDto(product));
+        }
+        return productDTOS;
+
+    }
+
+    public void updateProduct(ProductDTO productDTO, Integer productId) throws Exception {
+        Optional<Product>optionalProduct = productRepo.findById(productId);
+        if(!optionalProduct.isPresent()){
+            throw new Exception("Product not present");
+        }
+        Product product= optionalProduct.get();
+        product.setDescription(productDTO.getDescription());
+        product.setImageURL(productDTO.getImageURL());
+        product.setName(productDTO.getName());
+        product.setPrice(productDTO.getPrice());
+        productRepo.save(product);
+
+    }
+
+    public Product findById(Integer productId) throws ProductNotExistsException {
+       Optional<Product>optionalProduct = productRepo.findById(productId);
+       if(optionalProduct.isEmpty()){
+           throw new ProductNotExistsException("productId is invalid");
+       }
+       return optionalProduct.get();
+    }
+}
